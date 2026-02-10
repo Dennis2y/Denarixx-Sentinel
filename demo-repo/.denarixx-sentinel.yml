@@ -1,0 +1,42 @@
+mode: "comment-only"
+
+comment:
+  updateInsteadOfSpam: true
+  header: "🛡️ Denarixx Sentinel Report"
+
+pr:
+  titlePrefixes: ["feat:", "fix:", "chore:", "docs:", "refactor:", "test:"]
+  minBodyChars: 80
+  requiredSections: ["What", "Why"]
+  taskRegex: "(#\\d+|JIRA-\\d+|TASK-\\d+)"
+
+size:
+  warnFilesChangedOver: 20
+  warnLinesChangedOver: 300
+
+tests:
+  warnIfCodeChangedWithoutTests: true
+  codeGlobs: ["**/*.ts", "**/*.js", "**/*.py"]
+  testGlobs: ["**/*test*.*", "**/*spec*.*", "**/tests/**", "**/test/**"]
+
+risk:
+  enabled: true
+  sensitivePaths:
+    - "**/auth/**"
+    - "**/payments/**"
+    - "**/.github/workflows/**"
+    - "**/*config*.*"
+  dependencyFiles:
+    - "**/package-lock.json"
+    - "**/requirements.txt"
+    - "**/pyproject.toml"
+
+jsonOutput:
+  enabled: true
+  path: denarixx-sentinel-report.json
+
+sarif:
+  enabled: true
+  path: denarixx-sentinel.sarif
+
+rules: []
