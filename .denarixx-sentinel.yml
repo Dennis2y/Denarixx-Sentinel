@@ -1,4 +1,4 @@
-mode: "block-on-error" # or "comment-only"
+mode: "block-on-error"
 
 comment:
   updateInsteadOfSpam: true
@@ -19,18 +19,8 @@ tests:
   codeGlobs: ["**/*.ts", "**/*.js", "**/*.py"]
   testGlobs: ["**/*test*.*", "**/*spec*.*", "**/tests/**", "**/test/**"]
 
-rules:
-  - name: "No app -> infra imports (generic)"
-    severity: "warn"
-    fileGlobs: ["**/*.ts", "**/*.js", "**/*.py"]
-    forbidRegex:
-      - "from\\s+.*infra"
-      - "import\\s+.*infra"
-      - "src/infra"
-
 risk:
   enabled: true
-  # blockIfScoreAbove: 90  # optional: block merge above this score
   sensitivePaths:
     - "**/auth/**"
     - "**/payments/**"
@@ -51,3 +41,11 @@ risk:
     - "**/requirements.txt"
     - "**/pyproject.toml"
     - "**/poetry.lock"
+
+jsonOutput:
+  enabled: true
+  path: denarixx-sentinel-report.json
+
+sarif:
+  enabled: true
+  path: denarixx-sentinel.sarif
