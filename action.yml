@@ -1,7 +1,6 @@
 name: "Denarixx Sentinel"
-description: "PR copilot GitHub Action: checks PR quality, size, tests, rules, and Risk Score. Posts a clean updating report comment."
+description: "PR Copilot Guard: PR quality checks, test heuristics, configurable rules (JS/Python-friendly)"
 author: "Denarixx"
-
 inputs:
   config:
     description: "Path to config YAML file"
@@ -11,17 +10,9 @@ inputs:
     description: "GitHub token for commenting on PRs (usually secrets.GITHUB_TOKEN)"
     required: false
     default: "${{ github.token }}"
-
-outputs:
-  json-path:
-    description: "Path to JSON report file (if enabled)"
-  sarif-path:
-    description: "Path to SARIF report file (if enabled)"
-
 runs:
   using: "node20"
   main: "dist/index.js"
-
 branding:
   icon: "shield"
   color: "purple"

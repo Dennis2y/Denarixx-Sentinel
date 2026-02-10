@@ -7,7 +7,6 @@ import { runTestHeuristics } from "./checks/tests";
 import { runRuleChecks } from "./checks/rules";
 import { runSizeChecks } from "./checks/size";
 import { runRiskScore } from "./checks/risk";
-import { writeJsonReport, writeSarifReport } from "./outputs";
 
 async function run() {
   try {
