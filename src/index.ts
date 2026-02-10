@@ -15,6 +15,7 @@ import { runSizeChecks } from "./checks/size";
 import { runRiskScore } from "./checks/risk";
 import { writeJsonReport } from "./outputs/json";
 import { writeSarifReport } from "./outputs/sarif";
+import { minimatch } from "minimatch";
 
 async function run() {
   try {
@@ -34,7 +35,7 @@ async function run() {
     const changedPaths = changed.map((f) => f.filename);
 
     const testsTouched = changedPaths.some((f) =>
-      cfg.tests.testGlobs.some((g) => require("minimatch").minimatch(f, g))
+      cfg.tests.testGlobs.some((g) => minimatch(f, g))
     );
 
     const findings: Finding[] = [];
@@ -44,28 +45,26 @@ async function run() {
     findings.push(...runRuleChecks(cfg, repoRoot, changedPaths));
     findings.push(...runRiskScore(cfg, changed, changedPaths, testsTouched));
 
-    // Write machine-readable outputs (optional)
-    if (cfg.jsonOutput?.enabled) {
+    // Optional outputs (ALWAYS provide a safe path string)
+    const jsonEnabled = cfg.jsonOutput?.enabled === true;
+    const jsonPath = cfg.jsonOutput?.path || "denarixx-sentinel-report.json";
+
+    const sarifEnabled = cfg.sarif?.enabled === true;
+    const sarifPath = cfg.sarif?.path || "denarixx-sentinel.sarif";
+
+    if (jsonEnabled) {
       writeJsonReport({
         enabled: true,
-        path: cfg.jsonOutput.path,
+        path: jsonPath,
         findings,
-        meta: {
-          prNumber,
-          mode: cfg.mode,
-          changedFiles: changed.length,
-          repo: process.env.GITHUB_REPOSITORY || "",
-          sha: process.env.GITHUB_SHA || "",
-        },
       });
     }
 
-    if (cfg.sarif?.enabled) {
+    if (sarifEnabled) {
       writeSarifReport({
         enabled: true,
-        path: cfg.sarif.path,
+        path: sarifPath,
         findings,
-        repoRoot,
       });
     }
 
