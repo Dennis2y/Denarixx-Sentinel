@@ -1,6 +1,8 @@
 # Denarixx Sentinel 🛡️
 
 [![CI](https://github.com/Dennis2y/Denarixx-Sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/Dennis2y/Denarixx-Sentinel/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Dennis2y/Denarixx-Sentinel?sort=semver)](https://github.com/Dennis2y/Denarixx-Sentinel/releases)
+[![Security](https://img.shields.io/badge/Security-SARIF%20Enabled-success)](https://github.com/Dennis2y/Denarixx-Sentinel/security/code-scanning)
 ![GitHub Action](https://img.shields.io/badge/uses-GitHub%20Actions-blue)
 
 **Denarixx Sentinel** is a GitHub Action that acts like a PR copilot:
