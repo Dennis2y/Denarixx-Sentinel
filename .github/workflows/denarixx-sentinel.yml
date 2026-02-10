@@ -4,14 +4,33 @@ on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
 
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
 jobs:
   sentinel:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: Dennis2y/Denarixx-Sentinel@v1
+
+      - name: Run Denarixx Sentinel
+        uses: Dennis2y/Denarixx-Sentinel@v1
         with:
           config: .denarixx-sentinel.yml
+
+      - name: Upload SARIF to Code Scanning (if present)
+        if: always()
+        run: |
+          if [ -f "denarixx-sentinel.sarif" ]; then
+            echo "SARIF found ✅"
+          else
+            echo "SARIF not found (skipping upload) ⚠️"
+          fi
+
+      - name: Upload SARIF to Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: denarixx-sentinel.sarif
