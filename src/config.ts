@@ -52,6 +52,22 @@ export interface Config {
     dependencyFiles: string[];  // glob patterns
   };
 
+  /**
+   * Optional JSON output report file
+   */
+  jsonOutput?: {
+    enabled?: boolean;
+    path?: string;
+  };
+
+  /**
+   * Optional SARIF output file (for GitHub Code Scanning upload)
+   */
+  sarif?: {
+    enabled?: boolean;
+    path?: string;
+  };
+
   rules: Rule[];
 }
 
@@ -108,11 +124,24 @@ const DEFAULT_CONFIG: Config = {
     ],
   },
 
+  jsonOutput: {
+    enabled: false,
+    path: "denarixx-sentinel-report.json",
+  },
+
+  sarif: {
+    enabled: false,
+    path: "denarixx-sentinel.sarif",
+  },
+
   rules: [],
 };
 
 export function loadConfig(configPath: string, repoRoot: string): Config {
-  const full = path.isAbsolute(configPath) ? configPath : path.join(repoRoot, configPath);
+  const full = path.isAbsolute(configPath)
+    ? configPath
+    : path.join(repoRoot, configPath);
+
   if (!fs.existsSync(full)) return DEFAULT_CONFIG;
 
   const raw = fs.readFileSync(full, "utf8");
@@ -126,6 +155,8 @@ export function loadConfig(configPath: string, repoRoot: string): Config {
     size: { ...DEFAULT_CONFIG.size, ...(parsed.size || {}) },
     tests: { ...DEFAULT_CONFIG.tests, ...(parsed.tests || {}) },
     risk: { ...DEFAULT_CONFIG.risk, ...(parsed.risk || {}) },
+    jsonOutput: { ...DEFAULT_CONFIG.jsonOutput, ...(parsed.jsonOutput || {}) },
+    sarif: { ...DEFAULT_CONFIG.sarif, ...(parsed.sarif || {}) },
     rules: parsed.rules || DEFAULT_CONFIG.rules,
   };
 }
