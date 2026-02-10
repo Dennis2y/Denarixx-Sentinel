@@ -1,0 +1,53 @@
+mode: "block-on-error"
+
+comment:
+  updateInsteadOfSpam: true
+  header: "🛡️ Denarixx Sentinel Report"
+
+pr:
+  titlePrefixes: ["feat:", "fix:", "chore:", "docs:", "refactor:", "test:"]
+  minBodyChars: 150
+  requiredSections: ["What", "Why", "How tested"]
+  taskRegex: "(#\\d+|JIRA-\\d+|TASK-\\d+)"
+
+size:
+  warnFilesChangedOver: 20
+  warnLinesChangedOver: 300
+
+tests:
+  warnIfCodeChangedWithoutTests: true
+  codeGlobs: ["**/*.ts", "**/*.js", "**/*.py"]
+  testGlobs: ["**/*test*.*", "**/*spec*.*", "**/tests/**", "**/test/**"]
+
+risk:
+  enabled: true
+  blockIfScoreAbove: 85
+  sensitivePaths:
+    - "**/auth/**"
+    - "**/payments/**"
+    - "**/billing/**"
+    - "**/security/**"
+    - "**/infra/**"
+    - "**/migrations/**"
+    - "**/.github/workflows/**"
+    - "**/Dockerfile"
+    - "**/docker/**"
+    - "**/*config*.*"
+    - "**/*.env*"
+  dependencyFiles:
+    - "**/package.json"
+    - "**/package-lock.json"
+    - "**/yarn.lock"
+    - "**/pnpm-lock.yaml"
+    - "**/requirements.txt"
+    - "**/pyproject.toml"
+    - "**/poetry.lock"
+
+rules:
+  - name: "No app -> infra imports (generic)"
+    severity: "warn"
+    fileGlobs: ["**/*.ts", "**/*.js", "**/*.py"]
+    forbidRegex:
+      - "from\\s+.*infra"
+      - "import\\s+.*infra"
+      - "src/infra"

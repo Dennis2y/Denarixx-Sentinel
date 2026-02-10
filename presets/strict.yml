@@ -1,0 +1,40 @@
+mode: "block-on-error"
+
+comment:
+  updateInsteadOfSpam: true
+  header: "🛡️ Denarixx Sentinel Report"
+
+pr:
+  titlePrefixes: ["feat:", "fix:", "chore:", "docs:", "refactor:", "test:"]
+  minBodyChars: 120
+  requiredSections: ["What", "Why", "How tested"]
+  taskRegex: "(#\\d+|JIRA-\\d+|TASK-\\d+)"
+
+size:
+  warnFilesChangedOver: 25
+  warnLinesChangedOver: 400
+
+tests:
+  warnIfCodeChangedWithoutTests: true
+  codeGlobs: ["**/*.ts", "**/*.js", "**/*.py"]
+  testGlobs: ["**/*test*.*", "**/*spec*.*", "**/tests/**", "**/test/**"]
+
+risk:
+  enabled: true
+  blockIfScoreAbove: 90
+  sensitivePaths:
+    - "**/auth/**"
+    - "**/payments/**"
+    - "**/billing/**"
+    - "**/security/**"
+    - "**/infra/**"
+    - "**/migrations/**"
+    - "**/.github/workflows/**"
+    - "**/*config*.*"
+  dependencyFiles:
+    - "**/package-lock.json"
+    - "**/requirements.txt"
+    - "**/pyproject.toml"
+    - "**/poetry.lock"
+
+rules: []
