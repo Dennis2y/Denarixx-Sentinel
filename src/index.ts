@@ -19,8 +19,7 @@ import { writeSarifReport } from "./outputs/sarif";
 async function run() {
   try {
     const configPath = core.getInput("config") || ".denarixx-sentinel.yml";
-    const token =
-      core.getInput("github-token") || process.env.GITHUB_TOKEN || "";
+    const token = core.getInput("github-token") || process.env.GITHUB_TOKEN || "";
 
     const repoRoot = getRepoRoot();
     const cfg = loadConfig(configPath, repoRoot);
@@ -34,11 +33,8 @@ async function run() {
     const changed = await listChangedFiles(octokit, prNumber);
     const changedPaths = changed.map((f) => f.filename);
 
-    // Detect whether tests were touched (used by Risk Score)
-    // (We keep this local to avoid modifying the tests check code.)
-    const minimatch = require("minimatch") as typeof import("minimatch");
     const testsTouched = changedPaths.some((f) =>
-      (cfg.tests?.testGlobs ?? []).some((g) => minimatch.minimatch(f, g))
+      cfg.tests.testGlobs.some((g) => require("minimatch").minimatch(f, g))
     );
 
     const findings: Finding[] = [];
@@ -48,34 +44,39 @@ async function run() {
     findings.push(...runRuleChecks(cfg, repoRoot, changedPaths));
     findings.push(...runRiskScore(cfg, changed, changedPaths, testsTouched));
 
+    // Write machine-readable outputs (optional)
+    if (cfg.jsonOutput?.enabled) {
+      writeJsonReport({
+        enabled: true,
+        path: cfg.jsonOutput.path,
+        findings,
+        meta: {
+          prNumber,
+          mode: cfg.mode,
+          changedFiles: changed.length,
+          repo: process.env.GITHUB_REPOSITORY || "",
+          sha: process.env.GITHUB_SHA || "",
+        },
+      });
+    }
+
+    if (cfg.sarif?.enabled) {
+      writeSarifReport({
+        enabled: true,
+        path: cfg.sarif.path,
+        findings,
+        repoRoot,
+      });
+    }
+
     const meta = [
       `PR: #${prNumber}`,
       `Mode: \`${cfg.mode}\``,
       `Changed files: \`${changed.length}\``,
     ];
 
-    // Optional outputs (JSON + SARIF) — includes info/warn/error
-    writeJsonReport({
-      enabled: cfg.jsonOutput?.enabled ?? false,
-      path: cfg.jsonOutput?.path ?? "denarixx-sentinel-report.json",
-      findings,
-      toolVersion: process.env.GITHUB_ACTION_REF || undefined,
-    });
-
-    writeSarifReport({
-      enabled: cfg.sarif?.enabled ?? false,
-      path: cfg.sarif?.path ?? "denarixx-sentinel.sarif",
-      findings,
-    });
-
-    // PR comment
     const report = toMarkdown(cfg.comment.header, findings, meta);
-    await upsertComment(
-      octokit,
-      prNumber,
-      report,
-      cfg.comment.updateInsteadOfSpam
-    );
+    await upsertComment(octokit, prNumber, report, cfg.comment.updateInsteadOfSpam);
 
     if (cfg.mode === "block-on-error" && hasErrors(findings)) {
       core.setFailed("Denarixx Sentinel found merge-blocking errors.");
