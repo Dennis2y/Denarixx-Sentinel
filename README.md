@@ -40,3 +40,4 @@ jobs:
       - uses: Dennis2y/Denarixx-Sentinel@v1
         with:
           config: .denarixx-sentinel.yml
+
