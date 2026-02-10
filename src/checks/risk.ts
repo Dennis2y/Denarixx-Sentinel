@@ -41,7 +41,10 @@ export function runRiskScore(
   const band = score >= 75 ? "High" : score >= 40 ? "Medium" : "Low";
 
   const reasons: string[] = [];
-  reasons.push(`Score components: size(lines)=${sizeLines}, size(files)=${sizeFiles}, sensitive=${sensitivePts}, deps=${depsPts}, tests=${testsPts}`);
+  reasons.push(`Size impact: ${linesChanged} lines, ${filesChanged} files`);
+  reasons.push(`Sensitive impact: ${sensitiveTouched.length} sensitive match(es)`);
+  reasons.push(`Dependency impact: ${depsTouched.length} dependency file(s) changed`);
+  reasons.push(testsTouched ? `Tests signal: tests detected` : `Tests signal: NO tests detected`);
   if (sensitiveTouched.length) reasons.push(`Sensitive paths touched: ${sensitiveTouched.slice(0, 8).join(", ")}${sensitiveTouched.length > 8 ? "…" : ""}`);
   if (depsTouched.length) reasons.push(`Dependency files changed: ${depsTouched.join(", ")}`);
   if (!testsTouched) reasons.push("No tests detected in this PR (based on testGlobs).");
