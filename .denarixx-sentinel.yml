@@ -1,4 +1,4 @@
-mode: "block-on-error" # or "comment-only"
+mode: "block-on-error"
 
 comment:
   updateInsteadOfSpam: true
@@ -18,15 +18,6 @@ tests:
   warnIfCodeChangedWithoutTests: true
   codeGlobs: ["**/*.ts", "**/*.js", "**/*.py"]
   testGlobs: ["**/*test*.*", "**/*spec*.*", "**/tests/**", "**/test/**"]
-
-rules:
-  - name: "No app -> infra imports (generic)"
-    severity: "warn"
-    fileGlobs: ["**/*.ts", "**/*.js", "**/*.py"]
-    forbidRegex:
-      - "from\\s+.*infra"
-      - "import\\s+.*infra"
-      - "src/infra"
 
 risk:
   enabled: true
