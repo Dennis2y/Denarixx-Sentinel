@@ -41,3 +41,4 @@ jobs:
         with:
           config: .denarixx-sentinel.yml
 
+
