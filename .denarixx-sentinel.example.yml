@@ -51,3 +51,12 @@ risk:
     - "**/requirements.txt"
     - "**/pyproject.toml"
     - "**/poetry.lock"
+
+# Machine-readable outputs
+jsonOutput:
+  enabled: false
+  path: denarixx-sentinel-report.json
+
+sarif:
+  enabled: false
+  path: denarixx-sentinel.sarif
