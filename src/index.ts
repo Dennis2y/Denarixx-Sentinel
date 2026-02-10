@@ -6,6 +6,7 @@ import { runPrChecks } from "./checks/pr";
 import { runTestHeuristics } from "./checks/tests";
 import { runRuleChecks } from "./checks/rules";
 import { runSizeChecks } from "./checks/size";
+import { runRiskScore } from "./checks/risk";
 
 async function run() {
   try {
