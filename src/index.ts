@@ -1,12 +1,21 @@
 import * as core from "@actions/core";
 import { loadConfig } from "./config";
-import { getClient, requirePullRequest, listChangedFiles, upsertComment, getRepoRoot } from "./github";
+import {
+  getClient,
+  requirePullRequest,
+  listChangedFiles,
+  upsertComment,
+  getRepoRoot,
+} from "./github";
 import { toMarkdown, hasErrors, Finding } from "./report";
 import { runPrChecks } from "./checks/pr";
 import { runTestHeuristics } from "./checks/tests";
 import { runRuleChecks } from "./checks/rules";
 import { runSizeChecks } from "./checks/size";
 import { runRiskScore } from "./checks/risk";
+import { writeJsonReport } from "./outputs/json";
+import { writeSarifReport } from "./outputs/sarif";
+import { minimatch } from "minimatch";
 
 async function run() {
   try {
@@ -25,11 +34,39 @@ async function run() {
     const changed = await listChangedFiles(octokit, prNumber);
     const changedPaths = changed.map((f) => f.filename);
 
+    const testsTouched = changedPaths.some((f) =>
+      cfg.tests.testGlobs.some((g) => minimatch(f, g))
+    );
+
     const findings: Finding[] = [];
     findings.push(...runPrChecks(cfg, title, body));
     findings.push(...runSizeChecks(cfg, changed));
     findings.push(...runTestHeuristics(cfg, changedPaths));
     findings.push(...runRuleChecks(cfg, repoRoot, changedPaths));
+    findings.push(...runRiskScore(cfg, changed, changedPaths, testsTouched));
+
+    // Optional outputs (ALWAYS provide a safe path string)
+    const jsonEnabled = cfg.jsonOutput?.enabled === true;
+    const jsonPath = cfg.jsonOutput?.path || "denarixx-sentinel-report.json";
+
+    const sarifEnabled = cfg.sarif?.enabled === true;
+    const sarifPath = cfg.sarif?.path || "denarixx-sentinel.sarif";
+
+    if (jsonEnabled) {
+      writeJsonReport({
+        enabled: true,
+        path: jsonPath,
+        findings,
+      });
+    }
+
+    if (sarifEnabled) {
+      writeSarifReport({
+        enabled: true,
+        path: sarifPath,
+        findings,
+      });
+    }
 
     const meta = [
       `PR: #${prNumber}`,
