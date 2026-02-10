@@ -1,52 +1,89 @@
-import { writeFileSync } from "fs";
-import type { Finding } from "./json";
+import fs from "node:fs";
+import path from "node:path";
+import type { Finding } from "../report";
 
 type SarifLevel = "note" | "warning" | "error";
 
-function mapLevel(sev: Finding["severity"]): SarifLevel {
+function toSarifLevel(sev: string): SarifLevel {
   if (sev === "error") return "error";
   if (sev === "warn") return "warning";
-  return "note"; // info
+  return "note";
 }
 
-function stableRuleId(title: string): string {
-  // Make a stable id from the title
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || "finding";
+/**
+ * Try to discover a real file path from a finding.
+ * We only emit SARIF results when we can attach a physicalLocation.uri.
+ */
+function getFindingFile(f: any): string | undefined {
+  return (
+    f.filePath ||
+    f.file ||
+    f.path ||
+    f.filename ||
+    f.location?.path ||
+    f.location?.file ||
+    undefined
+  );
 }
 
-export function writeSarifReport(params: {
+function getFindingLine(f: any): number | undefined {
+  const n =
+    f.line ??
+    f.location?.line ??
+    f.location?.startLine ??
+    f.location?.region?.startLine ??
+    undefined;
+  return typeof n === "number" && Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+export function writeSarifReport(args: {
   enabled: boolean;
   path: string;
   findings: Finding[];
-}): void {
-  if (!params.enabled) return;
+  toolName?: string;
+  toolVersion?: string;
+}) {
+  if (!args.enabled) return;
 
-  const rulesMap = new Map<string, { id: string; name: string }>();
+  const toolName = args.toolName ?? "Denarixx Sentinel";
+  const toolVersion = args.toolVersion ?? "unknown";
 
-  for (const f of params.findings) {
-    const id = stableRuleId(f.title);
-    if (!rulesMap.has(id)) rulesMap.set(id, { id, name: f.title });
-  }
+  // Only include findings that can be anchored to a real file.
+  const fileBased = (args.findings as any[]).filter((f) => !!getFindingFile(f));
 
-  const rules = Array.from(rulesMap.values()).map((r) => ({
-    id: r.id,
-    name: r.id,
-    shortDescription: { text: r.name },
-    help: { text: r.name },
+  const uniqueRuleIds = Array.from(
+    new Set(
+      fileBased.map((f) => String(f.ruleId ?? f.title ?? f.name ?? "sentinel"))
+    )
+  );
+
+  const rules = uniqueRuleIds.map((id) => ({
+    id,
+    name: id,
+    shortDescription: { text: id },
+    fullDescription: { text: id },
   }));
 
-  const results = params.findings.map((f) => {
-    const ruleId = stableRuleId(f.title);
-    const messageLines = [f.title, ...(f.details ?? [])].filter(Boolean);
+  const results = fileBased.map((f) => {
+    const ruleId = String(f.ruleId ?? f.title ?? f.name ?? "sentinel");
+    const message = String(f.message ?? f.title ?? f.name ?? "Finding");
+
+    // MUST exist for GitHub Code Scanning: physicalLocation.artifactLocation.uri
+    const uri = String(getFindingFile(f));
+    const startLine = getFindingLine(f) ?? 1;
+
     return {
       ruleId,
-      level: mapLevel(f.severity),
-      message: { text: messageLines.join("\n") },
-      // No file locations available right now → keep it global.
+      level: toSarifLevel(String(f.severity ?? "info")),
+      message: { text: message },
+      locations: [
+        {
+          physicalLocation: {
+            artifactLocation: { uri },
+            region: { startLine },
+          },
+        },
+      ],
     };
   });
 
@@ -58,8 +95,8 @@ export function writeSarifReport(params: {
       {
         tool: {
           driver: {
-            name: "Denarixx Sentinel",
-            informationUri: "https://github.com/Dennis2y/Denarixx-Sentinel",
+            name: toolName,
+            version: toolVersion,
             rules,
           },
         },
@@ -68,5 +105,8 @@ export function writeSarifReport(params: {
     ],
   };
 
-  writeFileSync(params.path, JSON.stringify(sarif, null, 2) + "\n", "utf8");
+  const outPath = args.path;
+  const dir = path.dirname(outPath);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(outPath, JSON.stringify(sarif, null, 2), "utf8");
 }

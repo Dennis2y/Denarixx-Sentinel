@@ -26,6 +26,15 @@ async function run() {
     const cfg = loadConfig(configPath, repoRoot);
 
     const pr = requirePullRequest();
+
+    const actor = process.env.GITHUB_ACTOR || "";
+    const isBot = actor.includes("[bot]") || actor === "dependabot";
+
+    if (isBot) {
+      core.info(`Bot PR detected (${actor}) -> forcing comment-only mode`);
+      cfg.mode = "comment-only";
+    }
+
     const prNumber = pr.number;
     const title = pr.title || "";
     const body = pr.body || "";
