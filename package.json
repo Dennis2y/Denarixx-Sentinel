@@ -1,6 +1,6 @@
 {
   "name": "denarixx-sentinel",
-  "version": "0.1.0",
+  "version": "1.2.1",
   "private": true,
   "description": "Denarixx Sentinel - PR Copilot Guard GitHub Action",
   "main": "dist/index.js",
