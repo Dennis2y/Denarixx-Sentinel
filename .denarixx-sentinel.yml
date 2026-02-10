@@ -27,3 +27,27 @@ rules:
       - "from\\s+.*infra"
       - "import\\s+.*infra"
       - "src/infra"
+
+risk:
+  enabled: true
+  # blockIfScoreAbove: 90  # optional: block merge above this score
+  sensitivePaths:
+    - "**/auth/**"
+    - "**/payments/**"
+    - "**/billing/**"
+    - "**/security/**"
+    - "**/infra/**"
+    - "**/migrations/**"
+    - "**/.github/workflows/**"
+    - "**/Dockerfile"
+    - "**/docker/**"
+    - "**/*config*.*"
+    - "**/*.env*"
+  dependencyFiles:
+    - "**/package.json"
+    - "**/package-lock.json"
+    - "**/yarn.lock"
+    - "**/pnpm-lock.yaml"
+    - "**/requirements.txt"
+    - "**/pyproject.toml"
+    - "**/poetry.lock"
