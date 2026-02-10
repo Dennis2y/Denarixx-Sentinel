@@ -1,0 +1,17 @@
+name: Denarixx Sentinel
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  sentinel:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Dennis2y/Denarixx-Sentinel@v1
+        with:
+          config: .denarixx-sentinel.yml
